@@ -1,0 +1,15 @@
+body {
+  margin: 0;
+  overflow: hidden;
+  background-color: #89929b;
+  /* Fallback */
+  background-image: url('./assets/background.png');
+  background-size: cover;
+  background-position: center;
+  font-family: 'Jua', sans-serif;
+  color: white;
+}
+
+canvas {
+  display: block;
+}

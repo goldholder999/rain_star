@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <defs>
+    <radialGradient id="starGradient" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
+      <stop offset="0%" style="stop-color:#FFF59D;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FBC02D;stop-opacity:1" />
+    </radialGradient>
+  </defs>
+  
+  <!-- Back Star (Orange/Reddish) -->
+  <polygon points="50,0 65,30 98,35 75,60 85,95 50,75 15,95 25,60 2,35 35,30" fill="#FF6F00" stroke="#E65100" stroke-width="2"/>
+
+  <!-- Front Star (Gold) -->
+  <polygon points="50,10 60,35 88,38 68,58 75,88 50,70 25,88 32,58 12,38 40,35" fill="url(#starGradient)" stroke="#F9A825" stroke-width="2"/>
+  
+  <!-- Center Gem (Red) -->
+  <circle cx="50" cy="52" r="8" fill="#D32F2F" stroke="#B71C1C" stroke-width="1"/>
+  <circle cx="48" cy="50" r="2" fill="white" opacity="0.8"/>
+  
+  <!-- Sparkles -->
+  <circle cx="20" cy="20" r="3" fill="white" opacity="0.8"/>
+  <circle cx="80" cy="20" r="2" fill="white" opacity="0.6"/>
+</svg>
