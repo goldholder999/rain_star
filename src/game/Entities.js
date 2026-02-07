@@ -131,7 +131,7 @@ export class Item extends Entity {
         let radius = 5;
 
         switch (type) {
-            case 'RAIN': color = '#a2c2e0'; radius = 5; break;
+            case 'RAIN': color = '#70e1f5'; radius = 5; break; // Softer Cyan
             case 'BOMB': color = 'black'; radius = 8; break;
             case 'RAINBOW': color = 'linear-gradient'; radius = 10; break;
             case 'COIN': color = 'gold'; radius = 8; break;
@@ -176,12 +176,12 @@ export class Item extends Entity {
         }
 
         if (this.type === 'BOMB') {
-            ctx.fillStyle = 'red';
-            ctx.strokeStyle = 'white';
-            ctx.lineWidth = 2;
-            ctx.font = '10px Jua';
-            ctx.strokeText('!', this.x, this.y);
-            ctx.fillText('!', this.x, this.y);
+            ctx.fillStyle = 'black';
+            ctx.strokeStyle = 'white'; // Maybe no stroke for emoji? Or keeping it for visibility.
+            ctx.font = '24px Arial'; // Larger font for emoji
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('💣', this.x, this.y + 2); // Adjustment for emoji baseline
         }
     }
 }

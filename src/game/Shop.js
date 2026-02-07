@@ -1,8 +1,8 @@
 
 export const SHOP_ITEMS = [
-    { id: 'speed', name: '속도 증가', cost: 50, effect: (player) => { player.speed += 0.5; } },
-    { id: 'shield', name: '보호막 (준비 중)', cost: 100, effect: (player) => { console.log("Shield bought"); } }, // Placeholder
-    { id: 'grow', name: '즉시 성장', cost: 150, effect: (player) => { player.grow(5); } }
+    { id: 'speed', name: '속도 증가', cost: 50, effect: (gameState) => { gameState.player.speed += 0.5; } },
+    { id: 'magnet', name: '자석 (30초)', cost: 120, effect: (gameState) => { gameState.magnetTimer = 1800; } },
+    { id: 'grow', name: '즉시 성장', cost: 150, effect: (gameState) => { gameState.player.grow(5); } }
 ];
 
 export class Shop {
@@ -10,13 +10,13 @@ export class Shop {
         this.isOpen = false;
     }
 
-    buy(itemId, player, wallet) {
+    buy(itemId, gameState) {
         const item = SHOP_ITEMS.find(i => i.id === itemId);
         if (!item) return false;
 
-        if (wallet.coins >= item.cost) {
-            wallet.coins -= item.cost;
-            item.effect(player);
+        if (gameState.coins >= item.cost) {
+            gameState.coins -= item.cost;
+            item.effect(gameState);
             return true;
         }
         return false;

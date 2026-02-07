@@ -10,8 +10,18 @@ export class GameState {
         this.items = [];
         this.coins = 0;
         this.isGameOver = false;
+        this.isGameClear = false; // New Game Clear State
         this.frameCount = 0;
         this.spawnerTimer = 0;
+
+        // Rainbow Rush Event
+        this.rainbowRushTimer = 0;
+
+        // Magnet Item
+        this.magnetTimer = 0;
+
+        // Time Tracking for Game Clear
+        this.playDuration = 0; // in seconds (approx)
     }
 
     reset() {
@@ -20,13 +30,47 @@ export class GameState {
         this.items = [];
         this.coins = 0;
         this.isGameOver = false;
+        this.isGameClear = false;
         this.frameCount = 0;
+        this.rainbowRushTimer = 0;
+        this.magnetTimer = 0;
+        this.playDuration = 0;
     }
 
     update(input) {
-        if (this.isGameOver) return;
+        if (this.isGameOver || this.isGameClear) return;
 
         this.frameCount++;
+
+        // Track time (approx 60 frames = 1 second)
+        if (this.frameCount % 60 === 0) {
+            this.playDuration++;
+
+            // Trigger Rainbow Rush every 3 minutes (180 seconds) with 70% chance
+            if (this.playDuration > 0 && this.playDuration % 180 === 0) {
+                if (Math.random() < 0.7) {
+                    this.rainbowRushTimer = 600; // 10 seconds
+                }
+            }
+        }
+
+        // Check Game Clear (100 Days, 1 Day = 3 mins = 180 seconds)
+        // Total time = 100 * 180 = 18000 seconds
+        const currentDay = Math.floor(this.playDuration / 180) + 1;
+        if (currentDay > 100) {
+            this.isGameClear = true;
+            return;
+        }
+
+        // Handle Rainbow Rush Event Timer
+        if (this.rainbowRushTimer > 0) {
+            this.rainbowRushTimer--;
+        }
+
+        // Handle Magnet Timer
+        if (this.magnetTimer > 0) {
+            this.magnetTimer--;
+        }
 
         // Player Update
         this.player.update(this.width, this.height, input.x, input.y);
@@ -37,7 +81,10 @@ export class GameState {
 
         // Spawning Logic
         this.spawnerTimer++;
-        if (this.spawnerTimer > 60) { // Every ~1 second
+        // Spawn faster during Rainbow Rush
+        const spawnInterval = this.rainbowRushTimer > 0 ? 10 : 60;
+
+        if (this.spawnerTimer > spawnInterval) {
             this.spawnEntities();
             this.spawnerTimer = 0;
         }
@@ -47,7 +94,16 @@ export class GameState {
             enemy.update(this.width, this.height);
             // Collision with Player
             if (this.checkCollision(this.player, enemy)) {
+                let playerWins = false;
+
                 if (this.player.level > enemy.level) {
+                    playerWins = true;
+                } else if (this.player.level === enemy.level) {
+                    // 50% chance to win if same level
+                    if (Math.random() < 0.5) playerWins = true;
+                }
+
+                if (playerWins) {
                     // Gain 50% of enemy level, minimum 1
                     const gain = Math.max(1, Math.floor(enemy.level * 0.5));
                     this.player.grow(gain);
@@ -69,9 +125,26 @@ export class GameState {
 
         // Update Items
         this.items.forEach(item => {
-            // Simple drift for rain?
-            if (item.type === 'RAIN') {
-                item.y += 1;
+            // Magnet Effect: Attract items (coins/rain/rainbow/bomb?) 
+            // Usually magnets attract good stuff. Let's attract COIN, RAIN, RAINBOW. Not BOMB.
+            if (this.magnetTimer > 0 && item.type !== 'BOMB') {
+                const dx = this.player.x - item.x;
+                const dy = this.player.y - item.y;
+                const dist = Math.hypot(dx, dy);
+                if (dist < 300) { // Range 300
+                    item.x += (dx / dist) * 5; // Speed 5 towards player
+                    item.y += (dy / dist) * 5;
+                }
+            }
+
+            // Simple drift for rain, rainbow, and bomb
+            if (item.type === 'RAIN' || item.type === 'RAINBOW' || item.type === 'BOMB') {
+                let speed = 1;
+                if (item.type === 'RAINBOW') speed = 1.5;
+                if (item.type === 'BOMB') speed = 2; // Bombs fall faster? Let's say 2.
+
+                item.y += speed;
+
                 if (item.y > this.height) item.markedForDeletion = true;
             }
 
@@ -84,16 +157,18 @@ export class GameState {
         // Filter dead entities
         this.enemies = this.enemies.filter(e => !e.markedForDeletion);
         this.items = this.items.filter(i => !i.markedForDeletion);
-
-        // Check level up required spawn (Rainbow)
-        // Simplified: Random chance for now, logic for "Every 10 levels" can be checked here
-        if (this.player.level % 10 === 0 && this.player.level > 1 && !this.items.some(i => i.type === 'RAINBOW')) {
-            // Spawn rainbow if not exists - limitation: this spawns excessively if player stays at level 10. 
-            // Better logic: Tracking "last rainbow level".
-        }
     }
 
     spawnEntities() {
+        // Rainbow Rush Effect: Spawn LOTS of Rainbows
+        if (this.rainbowRushTimer > 0) {
+            if (Math.random() < 0.3) {
+                this.items.push(new Item(Math.random() * this.width, 0, 'RAINBOW'));
+            }
+            // Spawn normal stuff less frequently during rush to focus on rainbows? 
+            // Or just add rainbows on top. Let's add on top but slightly reduced enemies.
+        }
+
         // Rain
         if (Math.random() < 0.1) {
             this.items.push(new Item(Math.random() * this.width, 0, 'RAIN'));
@@ -113,7 +188,7 @@ export class GameState {
 
         // Bomb
         if (Math.random() < 0.02) {
-            this.items.push(new Item(Math.random() * this.width, Math.random() * this.height, 'BOMB'));
+            this.items.push(new Item(Math.random() * this.width, 0, 'BOMB')); // Spawn at top
         }
 
         // Coin
@@ -121,8 +196,8 @@ export class GameState {
             this.items.push(new Item(Math.random() * this.width, Math.random() * this.height, 'COIN'));
         }
 
-        // Rainbow - rare spawn
-        if (Math.random() < 0.01) {
+        // Rainbow - Normal rare spawn (outside of rush)
+        if (this.rainbowRushTimer <= 0 && Math.random() < 0.01) {
             this.items.push(new Item(Math.random() * this.width, Math.random() * this.height, 'RAINBOW'));
         }
     }

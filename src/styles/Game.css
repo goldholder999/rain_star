@@ -156,3 +156,58 @@ button:disabled {
     font-size: 1.5rem;
     padding: 15px 40px;
 }
+
+/* New Styles */
+.event-notification {
+    position: absolute;
+    top: 20%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #fff;
+    text-shadow: 0 0 10px #ff00de, 0 0 20px #ff00de, 0 0 30px #ff00de;
+    animation: pulse 1s infinite alternate;
+    pointer-events: none;
+    z-index: 100;
+}
+
+@keyframes pulse {
+    from {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 0.8;
+    }
+
+    to {
+        transform: translate(-50%, -50%) scale(1.1);
+        opacity: 1;
+    }
+}
+
+.magnet-notification {
+    position: absolute;
+    top: 30%;
+    /* Below rainbow notification */
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 2rem;
+    font-weight: bold;
+    color: #ff4d4d;
+    /* Reddish for magnet */
+    text-shadow: 0 0 10px white, 0 0 20px white;
+    pointer-events: none;
+    z-index: 100;
+}
+
+.game-clear h1 {
+    font-size: 3rem;
+    color: #00f2fe;
+    /* Cyan/Blue for clear */
+    margin-bottom: 20px;
+    text-shadow: 0 0 10px #4facfe, 0 0 20px #4facfe;
+}
+
+.game-clear p {
+    font-size: 1.2rem;
+    margin-bottom: 30px;
+}

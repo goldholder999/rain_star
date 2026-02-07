@@ -17,16 +17,19 @@ const UIOverlay = ({ gameState }) => {
 
     if (!gameState) return null;
 
-    const { player, coins, isGameOver } = gameState;
+    const { player, coins, isGameOver, isGameClear, playDuration, rainbowRushTimer } = gameState;
+
+    const currentDay = Math.floor(playDuration / 180) + 1;
 
     const handleRestart = () => {
         gameState.reset();
+        setShowShop(false);
     };
 
     const handleBuy = (item) => {
         if (gameState.coins >= item.cost) {
             gameState.coins -= item.cost;
-            item.effect(gameState.player);
+            item.effect(gameState); // Pass gameState, including player
         }
     };
 
@@ -36,8 +39,25 @@ const UIOverlay = ({ gameState }) => {
 
     return (
         <div className="ui-overlay">
+            {/* Rainbow Rush Notification */}
+            {rainbowRushTimer > 0 && (
+                <div className="event-notification">
+                    🌈 무지개 물방울 러쉬! 🌈
+                </div>
+            )}
+
+            {/* Magnet Notification */}
+            {gameState.magnetTimer > 0 && (
+                <div className="magnet-notification">
+                    🧲 자석 활성화! ({Math.ceil(gameState.magnetTimer / 60)}s)
+                </div>
+            )}
+
             {/* HUD */}
             <div className="hud">
+                <div className="hud-item">
+                    <span> Day {currentDay}</span> {/* Show Day */}
+                </div>
                 <div className="hud-item">
                     <span>레벨: {player.level}</span>
                     <img src={playerIconSrc} alt="Level Icon" className="icon-small" />
@@ -86,7 +106,19 @@ const UIOverlay = ({ gameState }) => {
                 <div className="modal-overlay game-over">
                     <div className="modal">
                         <h1>게임 오버</h1>
-                        <p>당신은 레벨 {player.level}까지 생존했습니다!</p>
+                        <p>{currentDay}일차, 레벨 {player.level}에서 끝났습니다.</p>
+                        <button className="restart-btn" onClick={handleRestart}>다시 시작</button>
+                    </div>
+                </div>
+            )}
+
+            {/* Game Clear Screen */}
+            {isGameClear && (
+                <div className="modal-overlay game-clear">
+                    <div className="modal">
+                        <h1>🎉 GAME CLEAR! 🎉</h1>
+                        <p>축하합니다! 100일간의 장마를 무사히 견뎌냈습니다!</p>
+                        <p>최종 레벨: {player.level}</p>
                         <button className="restart-btn" onClick={handleRestart}>다시 시작</button>
                     </div>
                 </div>
