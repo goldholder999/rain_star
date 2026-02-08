@@ -50,17 +50,17 @@ export class GameState {
         if (this.frameCount % 60 === 0) {
             this.playDuration++;
 
-            // Trigger Rainbow Rush every 3 minutes (180 seconds) with 70% chance
-            if (this.playDuration > 0 && this.playDuration % 180 === 0) {
+            // Trigger Rainbow Rush every 2 minutes (120 seconds) with 70% chance
+            if (this.playDuration > 0 && this.playDuration % 120 === 0) {
                 if (Math.random() < 0.7) {
                     this.rainbowRushTimer = 600; // 10 seconds
                 }
             }
         }
 
-        // Check Game Clear (100 Days, 1 Day = 3 mins = 180 seconds)
-        // Total time = 100 * 180 = 18000 seconds
-        const currentDay = Math.floor(this.playDuration / 180) + 1;
+        // Check Game Clear (100 Days, 1 Day = 2 mins = 120 seconds)
+        // Total time = 100 * 120 = 12000 seconds
+        const currentDay = Math.floor(this.playDuration / 120) + 1;
         if (currentDay > 100) {
             this.isGameClear = true;
             return;
