@@ -6,6 +6,26 @@ export const SHOP_ITEMS = [
     { id: 'grow', name: '즉시 성장', cost: 150, effect: (gameState) => { gameState.player.grow(5); } }
 ];
 
+export const SPECIAL_SHOP_ITEMS = [
+    {
+        id: 'rainbow_ticket',
+        name: 'RAINBOW 1회권',
+        cost: 5, // 5 Special Gems
+        currency: 'special_gem',
+        effect: (gameState) => {
+            gameState.rainbowTickets++;
+            // Or immediate effect? "Ticket to buy" implies holding it? 
+            // Or "Use ticket"?
+            // Let's just give a ticket. The user can "use" it? 
+            // Requirement 9: "Buy Rainbow Ticket".
+            // Requirement 10 (implicit): How to use? 
+            // Maybe a button in UI to USE ticket?
+            // Or buying it triggers it? "1회권 티켓을 살수 있다" -> Buy Ticket.
+            // I'll add a 'Use Ticket' button in UI later.
+        }
+    }
+];
+
 export class Shop {
     constructor() {
         this.isOpen = false;

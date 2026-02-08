@@ -135,6 +135,8 @@ export class Item extends Entity {
             case 'BOMB': color = 'black'; radius = 8; break;
             case 'RAINBOW': color = 'linear-gradient'; radius = 10; break;
             case 'COIN': color = 'gold'; radius = 8; break;
+            case 'SPECIAL_DROPLET': color = '#00CED1'; radius = 12; break; // Dark Turquoise
+            case 'TREASURE_CHEST': color = '#8B4513'; radius = 15; break; // SaddleBrown
         }
 
         super(x, y, radius, color);
@@ -182,6 +184,20 @@ export class Item extends Entity {
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillText('💣', this.x, this.y + 2); // Adjustment for emoji baseline
+        }
+
+        if (this.type === 'SPECIAL_DROPLET') {
+            ctx.font = '24px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('💦', this.x, this.y + 2);
+        }
+
+        if (this.type === 'TREASURE_CHEST') {
+            ctx.font = '30px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('📦', this.x, this.y + 2);
         }
     }
 }

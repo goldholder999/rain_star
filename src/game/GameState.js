@@ -25,6 +25,19 @@ export class GameState {
 
         // Time Tracking for Game Clear
         this.playDuration = 0; // in seconds (approx)
+
+        // New Features State
+        this.oldKeys = 0;
+        this.specialGems = 0;
+        this.rainbowTickets = 0;
+        this.specialShopUnlocked = false;
+
+        // Treasure Chest Logic
+        this.treasureChestSpawned = false; // To ensure we don't spawn multiple per frame if logic is loose, though % check is fine if done once per second.
+
+        // Notification System
+        this.notification = "";
+        this.notificationTimer = 0;
     }
 
     reset() {
@@ -46,6 +59,11 @@ export class GameState {
 
         this.frameCount++;
 
+        if (this.notificationTimer > 0) {
+            this.notificationTimer--;
+            if (this.notificationTimer <= 0) this.notification = "";
+        }
+
         // Track time (approx 60 frames = 1 second)
         if (this.frameCount % 60 === 0) {
             this.playDuration++;
@@ -55,6 +73,11 @@ export class GameState {
                 if (Math.random() < 0.7) {
                     this.rainbowRushTimer = 600; // 10 seconds
                 }
+            }
+
+            // Spawn Treasure Chest every 5 days (1 day = 120s, 5 days = 600s)
+            if (this.playDuration > 0 && this.playDuration % 600 === 0) {
+                this.spawnTreasureChest();
             }
         }
 
@@ -150,20 +173,33 @@ export class GameState {
                 }
             }
 
-            // Simple drift for rain, rainbow, and bomb
-            if (item.type === 'RAIN' || item.type === 'RAINBOW' || item.type === 'BOMB') {
+            // Simple drift for rain, rainbow, and bomb. Special Droplet also drifts?
+            // "Treasure chest" might stay in place or drift? "Map somewhere" implies it exists in the world.
+            // Let's make Chest drift slowly or stay? Let's make it drift slowly like others for consistent physics or stay static?
+            // User said "appear somewhere", usually static or moving with flow. Given it's a generic "survival", things usually fall.
+            // But a "Chest" falling off screen in 5 seconds is annoying.
+            // Let's make Chest drift VERY slowly or even stay put?
+            // "Naol ttae mada wichi neun dareuda" -> Position is different every time.
+            // Let's make it fall slowly.
+            if (['RAIN', 'RAINBOW', 'BOMB', 'SPECIAL_DROPLET', 'TREASURE_CHEST'].includes(item.type)) {
                 let speed = 1;
                 if (item.type === 'RAINBOW') speed = 1.5;
-                if (item.type === 'BOMB') speed = 2; // Bombs fall faster? Let's say 2.
+                if (item.type === 'BOMB') speed = 2;
+                if (item.type === 'TREASURE_CHEST') speed = 0.2; // Falls very slowly to give time to find
 
                 item.y += speed;
 
-                if (item.y > this.height) item.markedForDeletion = true;
+                if (item.y > this.height) {
+                    item.markedForDeletion = true;
+                    // If chest falls off, it's gone.
+                }
             }
 
             if (this.checkCollision(this.player, item)) {
-                this.handleItemCollection(item);
-                item.markedForDeletion = true;
+                const collected = this.handleItemCollection(item);
+                if (collected) {
+                    item.markedForDeletion = true;
+                }
             }
         });
 
@@ -213,6 +249,20 @@ export class GameState {
         if (this.rainbowRushTimer <= 0 && Math.random() < 0.01) {
             this.items.push(new Item(Math.random() * this.width, Math.random() * this.height, 'RAINBOW'));
         }
+
+        // Special Droplet (Rare - 0.5%)
+        if (Math.random() < 0.005) {
+            this.items.push(new Item(Math.random() * this.width, 0, 'SPECIAL_DROPLET'));
+        }
+    }
+
+    spawnTreasureChest() {
+        // Spawn at a random position, preferably near top to fall down
+        this.items.push(new Item(Math.random() * this.width, 0, 'TREASURE_CHEST'));
+
+        // Notify
+        this.notification = "맵 어딘가에 보물상자가 생겼다!";
+        this.notificationTimer = 180; // 3 seconds
     }
 
     handleItemCollection(item) {
@@ -231,7 +281,25 @@ export class GameState {
             case 'RAINBOW':
                 this.player.grow(5 * multiplier);
                 break;
+            case 'SPECIAL_DROPLET':
+                this.player.grow(10 * multiplier);
+                this.oldKeys++;
+                this.notification = "낡은 열쇠 획득!";
+                this.notificationTimer = 120;
+                break;
+            case 'TREASURE_CHEST':
+                if (this.oldKeys > 0) {
+                    this.oldKeys--;
+                    this.specialGems += 10;
+                    this.notification = "보물상자 오픈! 특별한 보석 10개 획득!";
+                } else {
+                    this.notification = "열쇠가 필요합니다!";
+                    return false; // Not collected (Chest persists)
+                }
+                this.notificationTimer = 180;
+                break;
         }
+        return true; // Collected
     }
 
     checkCollision(c1, c2) {

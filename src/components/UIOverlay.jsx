@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { SHOP_ITEMS } from '../game/Shop';
+import { SHOP_ITEMS, SPECIAL_SHOP_ITEMS } from '../game/Shop';
 import { ICONS } from '../game/Assets';
 import '../styles/Game.css';
 
@@ -17,9 +17,18 @@ const UIOverlay = ({ gameState }) => {
 
     if (!gameState) return null;
 
-    const { player, coins, isGameOver, isGameClear, playDuration, rainbowRushTimer } = gameState;
+    const { player, coins, isGameOver, isGameClear, playDuration, rainbowRushTimer, oldKeys, specialGems, rainbowTickets, specialShopUnlocked, notification } = gameState;
 
-    const currentDay = Math.floor(playDuration / 180) + 1;
+    const currentDay = Math.floor(playDuration / 120) + 1; // 1 Day = 120s (2 mins)
+
+    // Determine Player Icon for HUD based on Level
+    let playerIconSrc = ICONS.LEVEL_1.src;
+    if (player.level >= 100) playerIconSrc = ICONS.LEVEL_100.src;
+    else if (player.level >= 10) playerIconSrc = ICONS.LEVEL_10.src;
+    // Optionally use Character Icon if preferred, but checking Level Visuals:
+    // if (true) playerIconSrc = ICONS.CHARACTER.src; 
+    // sticking to Level Stars as per "Level 1~9: Star..." description
+
 
     const handleRestart = () => {
         gameState.reset();
@@ -33,8 +42,26 @@ const UIOverlay = ({ gameState }) => {
         }
     };
 
-    // Determine player icon source based on level (similar to Logic but for UI)
-    let playerIconSrc = ICONS.CHARACTER.src;
+    const handleUnlockSpecialShop = () => {
+        if (gameState.coins >= 100) {
+            gameState.coins -= 100;
+            gameState.specialShopUnlocked = true;
+        }
+    };
+
+    const handleBuySpecial = (item) => {
+        if (gameState.specialGems >= item.cost) {
+            gameState.specialGems -= item.cost;
+            item.effect(gameState);
+        }
+    };
+
+    const handleUseTicket = () => {
+        if (gameState.rainbowTickets > 0) {
+            gameState.rainbowTickets--;
+            gameState.rainbowRushTimer = 600;
+        }
+    };
 
 
     return (
@@ -60,6 +87,17 @@ const UIOverlay = ({ gameState }) => {
                 </div>
             )}
 
+            {/* General Notification */}
+            {notification && (
+                <div className="general-notification" style={{
+                    position: 'absolute', top: '20%', left: '50%', transform: 'translate(-50%, -50%)',
+                    backgroundColor: 'rgba(0, 0, 0, 0.7)', color: '#fff', padding: '10px 20px', borderRadius: '10px',
+                    fontSize: '20px', zIndex: 1000, pointerEvents: 'none', whiteSpace: 'nowrap'
+                }}>
+                    {notification}
+                </div>
+            )}
+
             {/* HUD */}
             <div className="hud">
                 <div className="hud-item">
@@ -75,6 +113,16 @@ const UIOverlay = ({ gameState }) => {
                 <div className="hud-item coin">
                     <img src={ICONS.COIN_SRC} alt="Coin" className="icon-small" />
                     <span> {coins}</span>
+                </div>
+                <div className="hud-item special-resources">
+                    <span title="낡은 열쇠">🗝️ {oldKeys}</span>
+                    <span title="특별한 보석">💎 {specialGems}</span>
+                    <span title="보유 티켓">🎫 {rainbowTickets}</span>
+                    {rainbowTickets > 0 && (
+                        <button className="use-ticket-btn" onClick={handleUseTicket} style={{ marginLeft: '10px', fontSize: '12px' }}>
+                            티켓 사용
+                        </button>
+                    )}
                 </div>
                 <div className="hud-item">
                     <button onClick={() => setShowShop(!showShop)}>
@@ -103,6 +151,38 @@ const UIOverlay = ({ gameState }) => {
                                 </div>
                             ))}
                         </div>
+
+                        {/* Special Shop Section */}
+                        <div className="special-shop-divider" style={{ margin: '20px 0', borderTop: '1px solid #eee' }}></div>
+                        <h2>
+                            💎 특별 상점
+                        </h2>
+                        {!specialShopUnlocked ? (
+                            <div className="special-shop-locked">
+                                <p>특별 상점이 잠겨있습니다.</p>
+                                <button
+                                    disabled={coins < 100}
+                                    onClick={handleUnlockSpecialShop}
+                                    style={{ backgroundColor: '#666' }}
+                                >
+                                    잠금 해제 (100 💰)
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="shop-items">
+                                {SPECIAL_SHOP_ITEMS.map(item => (
+                                    <div key={item.id} className="shop-item special-item" style={{ border: '2px solid gold' }}>
+                                        <span>{item.name}</span>
+                                        <button
+                                            disabled={specialGems < item.cost}
+                                            onClick={() => handleBuySpecial(item)}
+                                        >
+                                            구매 ({item.cost} 💎)
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                         <button className="close-btn" onClick={() => setShowShop(false)}>닫기</button>
                     </div>
                 </div>
