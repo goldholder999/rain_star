@@ -39,10 +39,10 @@ const UIOverlay = ({ gameState }) => {
 
     return (
         <div className="ui-overlay">
-            {/* Rainbow Rush Notification */}
+            {/* Rainbow Notification */}
             {rainbowRushTimer > 0 && (
                 <div className="event-notification">
-                    🌈 무지개 물방울 러쉬! 🌈
+                    🌈 RAINBOW! 🌈
                 </div>
             )}
 
