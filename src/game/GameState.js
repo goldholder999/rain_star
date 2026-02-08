@@ -20,6 +20,9 @@ export class GameState {
         // Magnet Item
         this.magnetTimer = 0;
 
+        // Double Growth Item
+        this.doubleGrowthTimer = 0;
+
         // Time Tracking for Game Clear
         this.playDuration = 0; // in seconds (approx)
     }
@@ -34,6 +37,7 @@ export class GameState {
         this.frameCount = 0;
         this.rainbowRushTimer = 0;
         this.magnetTimer = 0;
+        this.doubleGrowthTimer = 0;
         this.playDuration = 0;
     }
 
@@ -72,6 +76,11 @@ export class GameState {
             this.magnetTimer--;
         }
 
+        // Handle Double Growth Timer
+        if (this.doubleGrowthTimer > 0) {
+            this.doubleGrowthTimer--;
+        }
+
         // Player Update
         this.player.update(this.width, this.height, input.x, input.y);
 
@@ -105,7 +114,11 @@ export class GameState {
 
                 if (playerWins) {
                     // Gain 50% of enemy level, minimum 1
-                    const gain = Math.max(1, Math.floor(enemy.level * 0.5));
+                    let gain = Math.max(1, Math.floor(enemy.level * 0.5));
+
+                    // Double Growth Effect
+                    if (this.doubleGrowthTimer > 0) gain *= 2;
+
                     this.player.grow(gain);
                     this.coins += 10;
                     enemy.markedForDeletion = true;
@@ -203,18 +216,20 @@ export class GameState {
     }
 
     handleItemCollection(item) {
+        let multiplier = this.doubleGrowthTimer > 0 ? 2 : 1;
+
         switch (item.type) {
             case 'RAIN':
-                this.player.grow(1);
+                this.player.grow(1 * multiplier);
                 break;
             case 'COIN':
                 this.coins += 10;
                 break;
             case 'BOMB':
-                this.player.shrink(5);
+                this.player.shrink(5); // Bad things shouldn't overlap with good buff? Or maybe they do? "Eating drops 2x increase" usually implies positive. I'll keep penalties as is.
                 break;
             case 'RAINBOW':
-                this.player.grow(5);
+                this.player.grow(5 * multiplier);
                 break;
         }
     }

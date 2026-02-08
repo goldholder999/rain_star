@@ -53,6 +53,13 @@ const UIOverlay = ({ gameState }) => {
                 </div>
             )}
 
+            {/* Double Growth Notification */}
+            {gameState.doubleGrowthTimer > 0 && (
+                <div className="growth-notification">
+                    ⏫ 2배 성장! ({Math.ceil(gameState.doubleGrowthTimer / 60)}s)
+                </div>
+            )}
+
             {/* HUD */}
             <div className="hud">
                 <div className="hud-item">
